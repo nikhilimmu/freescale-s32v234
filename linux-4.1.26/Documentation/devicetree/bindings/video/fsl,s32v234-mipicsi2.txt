@@ -1,0 +1,85 @@
+Freescale MIPI-CSI2 interface
+
+Describes camera serial interface configuration.
+
+Required properties:
+- compatible: "fsl,<chip>-mipicsi2-<I/F ID>", chip should be s32v234
+- reg: Should contain the mipicsi2 register range (address and length - both
+		64bit)
+- interrupts: Should enumerate MIPICSI2 NVIC interrupt IDs.
+
+Required nodes:
+- sensor: Phandle to a sensor node placed in corresponding I2C bus.
+	Additional, the sensor node has to define properties:
+	- compatible: "fsl,<chip>-mipicsi2", chip should be s32v234
+	- reg: address of the device on i2c bus (without r/w bit)
+	- init_mode: string description of the image mode to be configured by default.
+			String format: "<width>x<height>x<pixel_format>".
+			Unsupported strings will be ignored.
+- clocks: Must contain an entry for each entry in clock-names.
+		See ../clocks/clock-bindings.txt for details.
+- clock-names: Must include the following entries:
+	- mipicsi2
+
+Pinmuxing note:
+- Connected sensor might require specific pin muxing setup. Corresponding
+	entries have to be added to s32v234-evb.dts and defined in:
+	include/dt-bindings/pinctrl/s32v234-pinctrl.h and
+	drivers/pinctrl/freescale/pinctrl-s32v234.c.
+
+Example:
+aips0: aips-bus@40000000 {
+
+	...
+
+	mipicsi0: mipicsi2_0@40030000{
+		compatible = "fsl,s32v234-mipicsi2-0";
+		reg = <0x0 0x40030000 0x0 0x1000>;
+		interrupts =  <0 91 1>,
+		<0 93 1>;
+		sensor = <0x0>; // nothing connected
+		clocks = <&clks S32V234_CLK_SYS6>;
+		clock-names = "mipicsi2";
+
+		status = "disabled";
+	};
+
+	...
+
+	i2c0: i2c@40051000 {
+		// sony camera
+		sony_cam: sensor@1a {
+			compatible = "sony,imx224mqv";
+			reg = <0x1a>;
+			init_mode = "1280x720xRAW12";
+		};
+	};
+};
+
+aips1: aips-bus@40080000 {
+
+	...
+
+	mipicsi1: mipicsi2_1@400A0000{
+		compatible = "fsl,s32v234-mipicsi2-1";
+		reg = <0x0 0x400A0000 0x0 0x1000>;
+		interrupts = 	<0 92 1>,
+		<0 94 1>;
+		sensor = <0x0>;   // nothing connected
+		clocks = <&clks S32V234_CLK_SYS6>;
+		clock-names = "mipicsi2";
+
+		status = "disabled";
+	};
+
+	...
+
+};
+
+&mipicsi0 {
+	status = "okay";
+};
+
+&mipicsi1 {
+	status = "okay";
+};
