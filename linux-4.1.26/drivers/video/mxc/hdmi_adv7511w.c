@@ -280,7 +280,7 @@ static int adv_probe(struct i2c_client *client,const struct i2c_device_id *id)
 
 static int adv_remove(struct i2c_client *client)
 {
-   struct i2c_client *client = adv_to_i2c(adv);
+   struct i2c_client *client = adv_to_i2c(client);
    
    i2c_unregister_device(client);
    kfree(adv);
@@ -312,7 +312,7 @@ static struct i2c_driver adv_i2c_driver = {
         .of_match_table = adv_dt_ids,
     },
     .probe = adv_probe,
-    //.remove = adv_remove,
+    .remove = adv_remove,
     .id_table = adv_id,
 };
 module_i2c_driver(adv_i2c_driver);
