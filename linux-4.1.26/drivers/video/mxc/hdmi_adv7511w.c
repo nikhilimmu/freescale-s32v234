@@ -318,7 +318,7 @@ static struct i2c_driver adv_i2c_driver = {
 module_i2c_driver(adv_i2c_driver);
 
 
-MODULE_AUTHOR("Nikhil Varghese");
+MODULE_AUTHOR("Nikhil Varghese<nikhilimmu@gmail.com>");
 MODULE_DESCRIPTION("ADV7511W driver");
 MODULE_LICENSE("GPL");
 
