@@ -178,6 +178,11 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c0>;
 	status = "okay";
+       hdmi: adv7511w@48 {
+               compatible = "fsl,adv7511w";
+               reg = <0x48>;
+       };
+
 };
 
 &i2c1 {

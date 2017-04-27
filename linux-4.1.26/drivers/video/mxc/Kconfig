@@ -61,6 +61,9 @@ config FB_MXC_EINK_AUTO_UPDATE_MODE
 config FB_MXS_SII902X
 	tristate "Si Image SII9022 DVI/HDMI Interface Chip"
 	depends on FB_MXS && I2C
+config FB_MXS_ADV7511W
+        tristate "ADV7511W DVI/HDMI Interface Chip"
+        depends on FB_MXS && I2C
 
 config HANNSTAR_CABC
 	tristate "Hannstar CABC function"
