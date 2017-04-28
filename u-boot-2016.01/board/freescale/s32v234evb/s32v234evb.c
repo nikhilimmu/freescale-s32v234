@@ -152,6 +152,74 @@ int board_phy_config(struct phy_device *phydev)
 
 	return 0;
 }
+#define SPI2_MCR     0x800f3000
+#define SPI2_CTAR0   0x38000005
+#define SPI2_SR      (SPI2_BASE_ADDR + 0x2c)
+#define SPI2_PUSHR   (SPI2_BASE_ADDR + 0x34)
+#define SPI2_POPR    (SPI2_BASE_ADDR + 0x38)
+#define SPI2_GPIO    (SIUL2_BASE_ADDR + 0x1320)
+
+static int cs_low(void)
+{
+	__raw_writel(SPI2_GPIO,(__raw_readl(SPI2_GPIO) & (~0x01000000U)));
+}
+static int cs_high(void)
+{
+	__raw_writel(SPI2_GPIO,(__raw_readl(SPI2_GPIO) | (~0xFEFFFFFFU)));
+}
+
+static check_stat(void)
+{
+        while ( ((__raw_readl(SPI2_SR)) & (0x80000000U)) == 0);
+        __raw_writel(SPI2_SR,(__raw_readl(SPI2_SR) | (0x800a0000)));
+        while ( ((__raw_readl(SPI2_SR)) & (0x00020000U)) == 0);
+        __raw_writel(SPI2_SR,(__raw_readl(SPI2_SR) | (0x000a0000)));
+}
+
+static void setup_mii_enet_switch(void)
+{
+	cs_low();
+	/* Set TCF, RFDF, RFOF to 1 */
+	__raw_writel(SPI2_SR,(__raw_readl(SPI2_SR) | (0x800a0000)));
+	/* Tx 0x03 */
+	__raw_writel(SPI2_PUSHR,0x00000003);
+	check_stat();
+
+	__raw_writel(SPI2_PUSHR,0x00000000);
+	check_stat();
+
+	__raw_writel(SPI2_PUSHR,0x00000000);
+	check_stat();
+
+	cs_high();
+	cs_low();
+		
+ 	__raw_writel(SPI2_SR,(__raw_readl(SPI2_SR) | (0x800a0000)));
+	
+	__raw_writel(SPI2_PUSHR,0x00000002);
+	check_stat();
+
+	__raw_writel(SPI2_PUSHR,0x00000001);
+	check_stat();
+
+	__raw_writel(SPI2_PUSHR,0x00000041);
+	check_stat();
+       
+	cs_high();
+	cs_low();
+ 	
+	__raw_writel(SPI2_SR,(__raw_readl(SPI2_SR) | (0x800a0000)));
+	
+	__raw_writel(SPI2_PUSHR,0x00000003);
+	check_stat();
+
+	__raw_writel(SPI2_PUSHR,0x00000001);
+	check_stat();
+	
+	__raw_writel(SPI2_PUSHR,0x00000000);
+	check_stat();
+	cs_high();
+}
 
 void setup_xrdc(void)
 {
@@ -222,7 +290,7 @@ int board_early_init_f(void)
 #ifdef CONFIG_DCU_QOS_FIX
 	board_dcu_qos();
 #endif
-
+        setup_mii_enet_switch();
 	setup_xrdc();
 	return 0;
 }
