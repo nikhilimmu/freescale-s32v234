@@ -23,9 +23,13 @@
 /*Deserlizer Registers*/
 #define MAX_ID 0x1E
 #define MAX_CTRL_CHANNEL 0x0A
-#define MAX_CONFIG_CHANNEL0 0x3B
-#define MAX_CONFIG_CHANNEL1 0x3F
+#define MAX_I2C_CONFIG 0x0D
+#define MAX_CONFIG 0x07
 #define MAX_HIM 0x06
+#define MAX_PKT_CRTL 0x9A
+#define MAX_REV_GAIN 0x97
+#define MAX_SER_CONFIG 0x04
+#define MAX_SER_GAIN 0x08
 
 struct max9706 {
     struct i2c_client               *client;
@@ -78,7 +82,113 @@ unsigned char disable_high_immunity(struct max9706 *max)
     }
     return retval;
 }
+unsigned char enable_auto_ack(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
 
+    retval=max_write(client,MAX_I2C_CONFIG,0xB6);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to enable auto ack\n");
+        retval=0;
+    }
+    return retval;
+}
+
+unsigned char set_revers_gain(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_CONFIG,0x02);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to set reverse gain in deserlizer\n");
+        retval=0;
+    }
+    return retval;
+}
+unsigned char set_pkt_ctrl(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_PKT_CRTL,0x19);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to set the packet ctrl\n");
+        retval=0;
+    }
+    return retval;
+}
+
+unsigned char set_gain(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_REV_GAIN,0x62);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to disable dserlizer in him mode\n");
+        retval=0;
+    }
+    return retval;
+}
+unsigned char set_revers_gain(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_CONFIG,0x02);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to disable dserlizer in him mode\n");
+        retval=0;
+    }
+    return retval;
+}
+unsigned char set_double_mode(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_CONFIG,0x84);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to disable dserlizer in him mode\n");
+        retval=0;
+    }
+    return retval;
+}
+
+unsigned char set_serlizer_in_config(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_SER_CONFIG,0x47);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to disable dserlizer in him mode\n");
+        retval=0;
+    }
+    return retval;
+}
+unsigned char set_serlizer_gain(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
+
+    retval=max_write(client,MAX_SER_GAIN,0x01);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to disable dserlizer in him mode\n");
+        retval=0;
+    }
+    return retval;
+}
 static int init_max(struct max9706 *max) {
 
     struct i2c_client *client = max_to_i2c(adv);
@@ -86,10 +196,22 @@ static int init_max(struct max9706 *max) {
     if(!verify_device(max)) //Deserlizer not recognized
     {
         dev_err(&client->dev, "failed to detect deserlizer\n");
-        return -ENOMEM;
+        return -EIO;
     }
     if(!disable_high_immunity(max))
-        return -ENOMEM;
+        return -EIO;
+    if(!enable_auto_ack(max))
+        return -EIO;
+    if(!set_serlizer_in_config(max))
+        return -EIO;
+    if(!set_serlizer_gain(max))
+        return -EIO;
+    if(!set_revers_gain(max))
+        return -EIO;
+    if(!set_pkt_ctrl(max))
+        return -EIO;
+    if(!set_gain(max))
+        return -EIO;
 	
 
 
