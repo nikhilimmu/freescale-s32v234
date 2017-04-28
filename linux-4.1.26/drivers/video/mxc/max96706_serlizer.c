@@ -25,59 +25,72 @@
 #define MAX_CTRL_CHANNEL 0x0A
 #define MAX_CONFIG_CHANNEL0 0x3B
 #define MAX_CONFIG_CHANNEL1 0x3F
+#define MAX_HIM 0x06
 
-struct max9706{
-	struct i2c_client               *client;
-	int powerstate;
-	int fsync;
-	int video_data_type;
-	int pbrs_enable;
+struct max9706 {
+    struct i2c_client               *client;
+    int powerstate;
+    int fsync;
+    int video_data_type;
+    int pbrs_enable;
 };
 
 
 static struct i2c_client *max_to_i2c(struct max9706 *max)
 {
-	    return max->client;
+    return max->client;
 }
 
 
 static s32 max_write(const struct i2c_client *client,u8 command, u8 value)
 {
-	    return i2c_smbus_write_byte_data(client, command, value);
+    return i2c_smbus_write_byte_data(client, command, value);
 }
 
 static s32 max_read(const struct i2c_client *client,u8 reg, u8 *val)
 {
-	    *val=i2c_smbus_write_byte_data(client, reg);
+    *val=i2c_smbus_write_byte_data(client, reg);
 }
 
 unsigned char verify_device(struct max9706 *max)
 {
- struct i2c_client *client = max_to_i2c(adv);
- unsigned char id;
- unsigned char retval;
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char id;
+    unsigned char retval=1;
 
-  id=max_read(client,MAX_ID, &id);
-  if(id != 0x40)
-	   retval=0;
-  else
-           retval=1;
+    id=max_read(client,MAX_ID, &id);
+    if(id != 0x40)
+        retval=0;
 
-  return retval;
+    return retval;
 }
 
+unsigned char disable_high_immunity(struct max9706 *max)
+{
+    struct i2c_client *client = max_to_i2c(adv);
+    unsigned char retval=1;
 
+    retval=max_write(client,MAX_HIM,0x6F);
+    if(retval< 0)
+    {
+        dev_err(&client->dev, "failed to disable dserlizer in him mode\n");
+        retval=0;
+    }
+    return retval;
+}
 
+static int init_max(struct max9706 *max) {
 
-static int init_max(struct max9706 *max){
- 
-  struct i2c_client *client = max_to_i2c(adv);
+    struct i2c_client *client = max_to_i2c(adv);
 
-  if(!verify_device(max)) //Deserlizer not recognized
-  {
-	dev_err(&client->dev, "failed to detect deserlizer\n");
-	return -ENOMEM;
-  }
+    if(!verify_device(max)) //Deserlizer not recognized
+    {
+        dev_err(&client->dev, "failed to detect deserlizer\n");
+        return -ENOMEM;
+    }
+    if(!disable_high_immunity(max))
+        return -ENOMEM;
+	
 
 
 }
@@ -87,7 +100,7 @@ static int max_probe(struct i2c_client *client,const struct i2c_device_id *id)
     struct i2c_adapter *adap;
     int err;
     struct max96706 *max;
-   
+
     adap = to_i2c_adapter(client->dev.parent);
 
     if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE)) {
