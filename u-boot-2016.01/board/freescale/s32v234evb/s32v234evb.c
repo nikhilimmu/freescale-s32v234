@@ -113,6 +113,22 @@ static void setup_iomux_i2c(void)
 	writel(SIUL2_PAD_CTRL_I2C2_IMCR_SCLK, SIUL2_IMCRn(272));
 }
 
+static void setup_iomux_spi2(void)
+{
+        /* SPI2 - Chip Select */
+        writel(0x00200700, SIUL2_MSCRn(32));
+        
+        /* SPI2 - Serial Clock Output */
+        writel(0x00200401, SIUL2_MSCRn(29));
+
+        /* SPI2 - Serial Data Output*/
+        writel(0x00200401, SIUL2_MSCRn(30));
+
+        /* SPI2 - Serial Data Input */
+        writel(0x00080000, SIUL2_MSCRn(31));
+        writel(0x00000002, SIUL2_IMCRn(294));
+}
+
 #ifdef CONFIG_SYS_USE_NAND
 void setup_iomux_nfc(void)
 {
@@ -201,6 +217,7 @@ int board_early_init_f(void)
 #ifdef CONFIG_SYS_USE_NAND
 	setup_iomux_nfc();
 #endif
+        setup_iomux_spi2();
 
 #ifdef CONFIG_DCU_QOS_FIX
 	board_dcu_qos();
