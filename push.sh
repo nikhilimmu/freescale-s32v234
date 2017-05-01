@@ -5,7 +5,7 @@ if [ -z "$1" ]
     exit 1
 fi
 echo "Adding.."
-git add .
+git add --all
 echo "comment "$1
 git commit -m $1
 echo "set repo"
