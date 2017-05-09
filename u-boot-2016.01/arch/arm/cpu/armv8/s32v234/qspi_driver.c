@@ -375,6 +375,39 @@ static int do_qspinor_prog(cmd_tbl_t *cmdtp, int flag, int argc,
 	return 0;
 }
 
+static int do_qspinor_read(cmd_tbl_t *cmdtp, int flag, int argc,
+                            char * const argv[])
+{
+        unsigned int fladdr, bufaddr, size;
+
+        if (argc != 4) {
+                printf("This command needs exactly three parameters (flashaddr "
+                       "buffaddr and size).\n");
+                return 1;
+        }
+
+        fladdr = simple_strtol(argv[1], NULL, 16);
+        if (!is_flash_addr(fladdr, qspi_real_address))
+                return 1;
+
+        bufaddr = simple_strtol(argv[2], NULL, 16);
+        size = simple_strtol(argv[3], NULL, 16);
+
+        if (size < FLASH_MIN_PROG_SIZE) {
+                printf("The written size must be bigger than %d.\n",
+                       FLASH_MIN_PROG_SIZE);
+                return 1;
+        }
+
+        if (!flash_lock) {
+                quadspi_read_ip_hyp(fladdr, (uintptr_t)bufaddr, size);
+        } else {
+                printf("Flash write and erase operations are locked!\n");
+        }
+        return 0;
+}
+
+
 static int do_qspinor_erase(cmd_tbl_t *cmdtp, int flag, int argc,
 			    char * const argv[])
 {
@@ -478,3 +511,14 @@ U_BOOT_CMD(
 	"      buffer at address BUFF.\n"
 	"      Note: all numbers are in hexadecimal format\n"
 );
+
+U_BOOT_CMD(
+        flread, 4, 1, do_qspinor_read,
+        "write a data buffer into hyperflash",
+        "ADDR BUFF HEXLEN\n"
+        "    - write into flash starting with address ADDR\n"
+        "      the first HEXLEN bytes contained in the memory\n"
+        "      buffer at address BUFF.\n"
+        "      Note: all numbers are in hexadecimal format\n"
+);
+
